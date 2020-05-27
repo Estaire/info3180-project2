@@ -22,8 +22,7 @@ class UserProfile(db.Model):
         self.last_name = last_name
         self.username = username
         self.password = generate_password_hash(password)
-        if img_address is None:
-            self.img_address = '/static/uploads/'+'no-profile-picture-icon-8.jpg'
+        self.img_address = '/static/uploads/'+'no-profile-picture-icon-8.jpg'
         self.biography = biography
         self.location = location
         self.created_on = datetime.datetime.now().strftime("%d %B %Y")
