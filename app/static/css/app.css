@@ -16,7 +16,7 @@ body{
     margin-right: auto;
 }
 
-#uploadForm, #loginForm, .alt{
+#uploadForm, #loginForm, .alt, #post, #edit{
     background-color:white;
     padding: 2rem 39px;
     border: 1px solid lightgrey;
@@ -56,7 +56,7 @@ body{
     box-shadow: none !important;
 }
 
-#register form button, #login form button{
+#register form button, #login form button, #edit button{
     background-color: rgb(0,149,246);
     border-color: rgb(0,149,246);
     font-size: 14px;
@@ -65,13 +65,16 @@ body{
     padding-top: 0px;
     margin-top: 7px;
     width: 270px;
+    -webkit-box-shadow: none !important;
+    -moz-box-shadow: none !important;
+    box-shadow: none !important;
 }
 
 #register form input:focus{
     border: 1px solid grey;
 }
 
-.email-label, .fn-label, .ln-label, .un-label, .pw-label{
+.email-label, #uploadForm .fn-label, #uploadForm .ln-label, #uploadForm .un-label, .pw-label, #login .un-label{
   color:grey;
   font-size: 12px;
   position: absolute;
@@ -91,23 +94,23 @@ input:focus ~ .email-label{
   opacity: 1;
 }
 
-.fn-label{
+#uploadForm .fn-label{
   top: 192px;
 }
 
-input:valid ~ .fn-label,
-input:focus ~ .fn-label{
+#uploadForm input:valid ~ .fn-label,
+#uploadForm input:focus ~ .fn-label{
   top: 185px;
   font-size: 10px;
   opacity: 1;
 }
 
-.ln-label{
+#uploadForm .ln-label{
   top: 236px;
 }
 
-input:valid ~ .ln-label,
-input:focus ~ .ln-label{
+#uploadForm input:valid ~ .ln-label,
+#uploadForm input:focus ~ .ln-label{
   top: 229px;
   font-size: 10px;
   opacity: 1;
@@ -118,7 +121,7 @@ input:focus ~ .ln-label{
 }
 
 #login .un-label{
-  top: 148px;
+  top: 147px;
 }
 
 #uploadForm input:valid ~ .un-label,
@@ -130,7 +133,7 @@ input:focus ~ .ln-label{
 
 #loginForm input:valid ~ .un-label,
 #loginForm input:focus ~ .un-label{
-  top: 141px;
+  top: 140px;
   font-size: 10px;
   opacity: 1;
 }
@@ -140,7 +143,7 @@ input:focus ~ .ln-label{
 }
 
 #login .pw-label{
-  top: 193px;
+  top: 192px;
 }
 
 #uploadForm input:valid ~ .pw-label,
@@ -152,7 +155,7 @@ input:focus ~ .ln-label{
 
 #loginForm input:valid ~ .pw-label,
 #loginForm input:focus ~ .pw-label{
-  top: 186px;
+  top: 185px;
   font-size: 10px;
   opacity: 1;
 }
@@ -208,28 +211,505 @@ nav .form-inline .md-form .form-control:focus{
     color: #aaa;
 }
 
-.navbar-nav .home, .navbar-nav .logout{
+.navbar-nav .home{
   font-size: 26px;
   margin-left: 143px;
-  line-height: 14px;
+  margin-top: 10px;
+}
+
+.navbar-nav .profile img{           
+  border-radius: 50%;
+  height: 24px;
+  margin-left: 5px;
+  margin-top: 13px;
+  width: 24px
+}
+
+.border-style{
+  background-image: linear-gradient(white, white), 
+                    linear-gradient(45deg, black, black);
+  background-origin: border-box;
+  background-clip: padding-box, border-box;
+  border: 1px solid transparent;
+  padding: 1px;
 }
 
 .navbar-nav .logout{
-  margin-left: 3px;
+  font-size: 24px;
+  margin-left: 5px;
+  margin-top: 10px;
 }
-.user-header, .user-posts{
+
+.navbar-nav .post{
+  font-size: 22px;
+  margin-left: 5px;
+  margin-top: 13px;
+}
+
+#user-header{
   background-color: white;
   border: 1px solid lightgrey;
   border-radius: 3px;
-  
-}
-
-.user-header{
   margin-top: 70px;
-  height: 115px;
+  height: 115px; 
 }
 
-.user-posts{
-  height: 600px;
-  margin-top: 25px
+#suggestions{
+  background-color: white;
+  border: 1px solid lightgrey;
+  border-radius: 3px;
+  margin-left: 50px;
+  padding: 10px;
+  width: 600px;
+}
+
+h6{
+  margin-left: 50px;
+  margin-top: 72px;
+}
+
+#suggestion{
+  align-items: center;
+  display: grid;
+  grid-template-columns: 1fr 7fr 1fr;
+  grid-template-areas: 
+  "pic user follow"
+  "pic name follow";
+  height: 70px;
+  padding: 10px;
+}
+
+#suggestion img{
+  background-image: linear-gradient(white, white), 
+                    linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);           
+  background-origin: border-box;
+  background-clip: padding-box, border-box;
+  border: 2px solid transparent;
+  border-radius: 50%;
+  grid-area: pic;
+  height: 50px;
+  padding: 2px;
+  width: 50px;
+}
+
+#suggestion .username, #rhs .username{
+  font-size: 14px;
+  font-weight: bold;
+  grid-area: user;
+}
+
+#suggestion .name, #user .name{
+  font-size: 14px;
+  grid-area: name;
+}
+
+#suggestion .follow, #suggestion .following, #suggestion-view .follow, #suggestion-view .following{
+  font-size: 14px;
+  font-weight: bold;
+  grid-area: follow;
+  height: 30px;
+  line-height: 12px;
+  padding: 0px;
+  outline: none;
+  -webkit-box-shadow: none !important;
+  -moz-box-shadow: none !important;
+  box-shadow: none !important;
+}
+#suggestion .follow, #suggestion-view .follow{
+  background-color: rgb(0,149,246);
+  border-color: rgb(0,149,246); 
+  width: 63px;
+}
+
+#suggestion .following, #suggestion-view .following{
+  background-color: white;
+  border-color: lightgrey;
+  width: 84px;
+}
+
+#suggestion-view .follow:after,
+#suggestion .follow:after{
+  content: "Follow";
+}
+
+#suggestion-view .following:after,
+#suggestion .following:after{
+  content: "Following";
+  color: black;
+}
+
+#rhs{
+  margin-top: 90px;
+  position: fixed;
+}
+#rhs #user{
+  align-items: center;
+  display: grid;
+  grid-template-columns: 1fr 4fr;
+  grid-template-rows: 1fr 1fr 1fr 1fr;
+  grid-template-areas: 
+  "pic user"
+  "pic name";
+  height: 70px;
+  padding: 10px;
+}
+
+#rhs #h6{
+  color: grey;
+  font-size: 15px;
+  margin: 0px;
+  margin: 10px 0px;
+}
+
+
+#rhs #see-all .router-link-active{
+  color: black;
+  font-weight: bold;
+  float: right;
+  font-size: 12px;
+  line-height: 25px;
+  margin-right: 23px;
+  text-decoration: none;
+}
+
+#user img{
+  border: 1px solid lightgrey;
+  border-radius: 50%;
+  grid-area: pic;
+  height: 58px;
+  width: 58px;
+}
+
+#rhs .username{
+  font-size: 14px;
+  margin-left: 9px;
+}
+
+#rhs .name{
+  color: grey;
+  font-size: 12px;
+  margin-left: 9px;
+}
+
+#suggestion-view{
+  padding: 10px;
+}
+
+#suggestion-view img{
+  border-radius: 50%;
+  height: 33px;
+  width: 33px;
+}
+
+#suggestion-view .follow, #suggestion-view .following{
+  float: right;
+  background-color: rgb(250,250,250);
+  border: none;
+  font-size: 12px
+}
+
+#suggestion-view .follow{
+  color: rgb(0,149,246);
+}
+
+#user-header{
+  display: flex;
+  padding-left: 5px;
+  overflow-x: scroll;
+  overflow-y: hidden;
+  white-space: nowrap;
+}
+
+#user-view{
+  padding-top: 15px;
+  margin-left: 10px;
+  width: 75px;
+}
+
+#user-view span, #user-view img{
+  display: block;
+  margin: auto;
+  overflow: hidden !important;
+  text-align: center;
+  text-overflow: ellipsis;
+}
+
+#user-view img{
+  background-image: linear-gradient(white, white), 
+                    linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);           
+  background-origin: border-box;
+  background-clip: padding-box, border-box;
+  border: 2px solid transparent;
+  border-radius: 50%;
+  height: 65px;
+  padding: 2px;
+  width: 65px;
+}
+
+#user-view span{
+  font-size: 12px;
+}
+
+#post #caption-label{
+  font-size: 14px;
+  font-weight: bold;
+  margin-left: 40px;
+}
+
+#post #caption{
+  font-size: 14px;
+  margin-left: 40px;
+  resize: none;
+  width: 290px;
+}
+
+#post button{
+  margin-top: 23px;
+  background-color: white;
+  border: none;
+  border-radius: 0px;
+  border-right: 1px solid lightgrey;
+  border-top: 1px solid lightgrey;
+  color: rgb(0,149,246);
+  font-size: 14px;
+  width: 369px;
+  -webkit-box-shadow: none !important;
+  -moz-box-shadow: none !important;
+  box-shadow: none !important;
+}
+
+input[type="file"]{
+  display: none;
+}
+
+#post{
+  margin-top: 70px;
+  padding: 20px 0px 0px;
+}
+
+#post #photo-label{
+  border: 1px solid black;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 12px;
+  padding: 0px 10px;
+  margin: 20px 250px 40px 40px;
+}
+
+#post #label{
+  font-size: 14px;
+  font-weight: bold;
+  margin: 40px;
+}
+
+#user-posts{
+  background-color: white;
+  border: 1px solid lightgrey;
+  border-radius: 3px;
+  display: inline-block;
+  font-size: 14px;
+  grid-template-columns: 1fr;
+  margin-top: 25px;
+  min-height: 300px;
+  max-height: 700;
+  width: 600px;
+}
+
+#user-posts .profile_pic{
+  background-image: linear-gradient(white, white), 
+                    linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);           
+  background-origin: border-box;
+  background-clip: padding-box, border-box;
+  border: 2px solid transparent;
+  border-radius: 50%;
+  height: 40px;
+  padding: 2px;
+  width: 40px;
+  margin: 10px;
+}
+
+#user-posts .photo{
+  background-color:lightgrey;
+  border-bottom: 1px solid lightgrey;
+  border-top: 1px solid lightgrey;
+  width:100%; 
+  height:100%; 
+  object-fit:contain; 
+}
+
+#user-posts .caption{
+  font-size: 14px;
+  display: inline-block;
+  margin: 20px 10px;
+}
+
+#user-posts button{
+  font-size: 24px;
+  background-color: white;
+  border: none;
+  color: black;
+  padding: 0px;
+  margin: 10px 0px 10px 20px;
+  height: 27px;
+  -webkit-box-shadow: none !important;
+  -moz-box-shadow: none !important;
+  box-shadow: none !important;
+}
+
+#user-posts .created_on{
+  float:right;
+  margin: 10px 20px 0px 0px;
+}
+
+#profile-header{
+  margin-top: 70px;
+}
+
+#profile-header .profile-pic{
+  background-image: linear-gradient(white, white), 
+                    linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);           
+  background-origin: border-box;
+  background-clip: padding-box, border-box;
+  border: 2px solid transparent;
+  border-radius: 50%;
+  height: 150px;
+  padding: 5px;
+  width: 150px;
+  margin: 10px;
+}
+
+#profile-header .username{
+  font-size: 24px;
+}
+
+#edit{
+  margin-top: 70px;
+  height: 450px;
+}
+
+#edit span{
+  font-weight:bold;
+  margin-right: auto;
+}
+
+#edit .form-group{
+  display: flex;
+  align-items: baseline;
+  justify-content: flex-end;
+}
+
+#edit input[type="text"], #edit textarea{
+  width: 355px;
+  resize: none;
+  border-radius: 3px;
+  border-color: lightgrey;
+  padding-left: 10px;
+}
+
+#edit .top{
+  display: grid;
+  grid-template-columns: 1fr 3fr;
+  grid-template-areas: 
+  "pic user"
+  "pic change";
+  margin-bottom: 10px;
+}
+
+#edit label{
+  color:rgb(0,149,246);
+  font-size: 14px;
+  grid-area: change;
+  cursor: pointer;
+}
+
+#edit button{
+  line-height: 2px;
+  width: 65px;
+  padding: 0px;
+  margin-left: 207px;
+}
+
+#edit img{
+  border-radius: 50%;
+  grid-area: pic;
+  height: 40px;
+  width: 40px;
+  margin-left: 43px
+}
+
+#edit .top span{
+  grid-area: user;
+}
+
+#profile-header{
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  margin-top: 70px;
+  padding-left: 40px;
+  border-bottom: 1px solid lightgrey;
+  padding-bottom: 50px;
+}
+
+#profile-header .group{
+  align-items: center;
+  display: flex;
+}
+
+#profile-header .username{
+  font-size: 30px;
+}
+
+#profile-header .two{
+  margin: 20px 0px;
+}
+
+#profile-header .two span{
+  margin-right: 30px;
+}
+
+#profile-photos{
+  margin-top: 50px;
+}
+
+.photo-container{
+  display: inline-flex;
+  width: 268px;
+  height: 268px;
+  margin: 0px 30px 30px 0px;
+  background-color: white;
+  flex-wrap: wrap;
+}
+
+.photo-container img{
+  height: 100%;
+  width: 100%;
+  object-fit: contain;
+}
+
+#profile-header span{
+  display: block;
+}
+
+#profile-header button{
+  background-color: white;
+  border-color: lightgrey;
+  color: black;
+  font-size: 14px;
+  font-weight: bold;
+  height: 30px;
+  padding: 0px;
+  width: 95px;
+  -webkit-box-shadow: none !important;
+  -moz-box-shadow: none !important;
+  box-shadow: none !important;
+}
+
+
+@keyframes pulse{
+  0%{
+    transform: scale(1);
+  }
+  25%{
+    transform: scale(1.4);
+  }
 }

@@ -12,8 +12,8 @@ from flask_jwt_extended import (
     JWTManager, jwt_required, create_access_token,
     get_jwt_identity
 )
-from app.forms import NewUserForm, LoginForm
-from app.models import UserProfile
+from app.forms import NewUserForm, LoginForm, PostForm, UserForm
+from app.models import UserProfile, Follow, Post, Like
 from flask_login import login_user, logout_user, current_user, login_required
 from werkzeug.utils import secure_filename
 from werkzeug.security import check_password_hash, generate_password_hash
@@ -43,11 +43,11 @@ def index(path):
 def register():
     form = NewUserForm()
     if form.validate_on_submit() and request.method == 'POST':
-        user = UserProfile(request.form['email'], request.form['firstname'], request.form['lastname'], request.form['username'], request.form['password'])
+        user = UserProfile(request.form['email'], request.form['firstname'], request.form['lastname'], request.form['username'], request.form['password'], "", "", "")
         db.session.add(user)
-        db.session.commit() 
-        login_user(user)
-        return redirect(url_for('homepage'))
+        db.session.commit()
+        access_token = create_access_token(identity=request.form['username'])
+        return jsonify({'authenticated':True, 'access_token': access_token}), 200
     return jsonify(response=form_errors(form))
 
 @app.route("/api/auth/login", methods=['GET', 'POST'])
@@ -65,8 +65,113 @@ def login():
 @app.route('/api/posts', methods=['GET'])
 @jwt_required
 def homepage():
+    users_array = []
     current_user = get_jwt_identity()
-    return jsonify(logged_in_as=current_user), 200
+    user = UserProfile.query.filter_by(username=current_user).first()
+    follow = Follow.query.filter_by(follower_id=user.id).first()
+    users = UserProfile.query.filter(UserProfile.username != current_user).all()
+    
+    for userw in users:
+        check_follow = Follow.query.filter_by(user_id=userw.id, follower_id=user.id).first()
+        follows = Follow.query.filter_by(user_id=userw.id).all()
+        count = len(follows)
+        if check_follow:
+            users_array.append(dict({'id':userw.id, 'username':userw.username, 'firstname':userw.first_name, 'lastname':userw.last_name, 'profile_pic':userw.img_address, 'biography':userw.biography, 'location':userw.location, 'check_follow':True, 'follower_count':count, 'created_on':userw.created_on}))
+        else:
+            users_array.append(dict({'id':userw.id, 'username':userw.username, 'firstname':userw.first_name, 'lastname':userw.last_name, 'profile_pic':userw.img_address, 'biography':userw.biography, 'location':userw.location, 'check_follow':False, 'follower_count':count, 'created_on':userw.created_on}))
+
+    follows = Follow.query.filter_by(user_id=user.id).all()
+    count = len(follows)
+
+    if follow:
+        return jsonify(user={'id':user.id, 'username':current_user, 'firstname':user.first_name, 'lastname':user.last_name, 'profile_pic':user.img_address, 'biography':user.biography, 'location':user.location, 'follower_count':count, 'created_on':user.created_on}, follow=True, users=users_array), 200
+    else:
+        return jsonify(user={'id':user.id, 'username':current_user, 'firstname':user.first_name, 'lastname':user.last_name, 'profile_pic':user.img_address, 'biography':user.biography, 'location':user.location, 'follower_count':count, 'created_on':user.created_on}, follow=False, users=users_array), 200
+
+@app.route('/api/users/<int:user_id>/follow', methods=['POST'])
+@jwt_required
+def follow(user_id):
+    current_user = get_jwt_identity()
+    follower = UserProfile.query.filter_by(username=current_user).first()
+    follower_id = follower.id
+    new_follower = Follow(user_id, follower_id)
+    db.session.add(new_follower)
+    db.session.commit()
+    return jsonify({'message':'Following'}), 200
+
+@app.route('/api/users/<int:user_id>/posts', methods=['GET','POST'])
+@jwt_required
+def post(user_id):
+    form = PostForm()
+    if request.method == 'POST' and form.validate_on_submit():
+        file = request.files['photo']
+        filename = secure_filename(file.filename)
+        file.save(os.path.join(app.config['UPLOAD_FOLDER'],filename))
+        img_address = "/static/uploads/"+filename
+        post = Post(user_id, img_address, request.form['caption'])
+        db.session.add(post)
+        db.session.commit()
+        setLikes = Post.query.filter_by(id=post.id).first()
+        like = Like(user_id, setLikes.id)
+        db.session.add(like)
+        db.session.commit()
+        return jsonify({'message':'Post added successfully'}), 200
+    elif request.method == 'GET':
+        posts = []
+        follows = Follow.query.filter_by(follower_id=user_id).all()
+        user_posts = Post.query.filter_by(user_id=user_id).all()
+        user = UserProfile.query.filter_by(id=user_id).first()
+        if user_posts is not None:
+            for user_post in user_posts:
+                likes = Like.query.filter_by(post_id=user_post.id).first()
+                if likes is not None:
+                    posts.append(dict({'profile_pic':user.img_address, 'username':user.username, 'post_id':user_post.id, 'photo':user_post.photo, 'caption':user_post.caption, 'created_on':user_post.created_on, 'likes':likes.likes}))
+                else:
+                    posts.append(dict({'profile_pic':user.img_address, 'username':user.username, 'post_id':user_post.id, 'photo':user_post.photo, 'caption':user_post.caption, 'created_on':user_post.created_on, 'likes':0}))
+        posts.reverse()
+        for follow in follows:
+            follows_posts = Post.query.filter_by(user_id=follow.user_id).all()
+            user = UserProfile.query.filter_by(id=follow.user_id).first()
+            if follows_posts is not None:
+                for follow_post in follows_posts:
+                    likes = Like.query.filter_by(post_id=follow_post.id).first()
+                    if likes is not None:
+                        posts.append(dict({'profile_pic':user.img_address, 'username':user.username, 'post_id':follow_post.id, 'photo':follow_post.photo, 'caption':follow_post.caption, 'created_on':follow_post.created_on, 'likes':likes.likes}))
+                    else:
+                        posts.append(dict({'profile_pic':user.img_address, 'username':user.username, 'post_id':follow_post.id, 'photo':follow_post.photo, 'caption':follow_post.caption, 'created_on':follow_post.created_on, 'likes':0}))
+        return jsonify(posts=posts), 200
+    return jsonify({'message':'Error'}), 500
+
+@app.route('/api/posts/<int:post_id>/like', methods=['POST'])
+@jwt_required
+def like(post_id):
+    like = Like.query.filter_by(post_id=post_id).first()
+    like.likes = like.likes + 1
+    db.session.commit()
+    return jsonify({'message':'Post liked'}), 200
+
+@app.route('/api/user/edit', methods=['POST'])
+@jwt_required
+def edit():
+    form = UserForm()
+    if form.validate_on_submit() and request.method == 'POST':
+        user = UserProfile.query.filter_by(username=get_jwt_identity()).first()
+        user_id = user.id
+        user = UserProfile.query.get(user_id)
+        file = request.files['photo']
+        if file:
+            filename = secure_filename(file.filename)
+            file.save(os.path.join(app.config['UPLOAD_FOLDER'],filename))
+            img_address = "/static/uploads/"+filename
+            user.img_address = img_address
+        user.username = request.form['username']
+        user.firstname = request.form['firstname']
+        user.lastname = request.form['lastname']
+        user.biography = request.form['biography']
+        user.location = request.form['location']
+        db.session.commit()
+        return jsonify({'message':'Changed some stuff'}), 200
+    return jsonify({'message':'Error'})
 
 @app.route('/api/auth/logout', methods=['GET'])
 @jwt_required
