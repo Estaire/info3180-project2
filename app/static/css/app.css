@@ -362,7 +362,7 @@ h6{
 }
 
 
-#rhs #see-all .router-link-active{
+#rhs #see-all{
   color: black;
   font-weight: bold;
   float: right;

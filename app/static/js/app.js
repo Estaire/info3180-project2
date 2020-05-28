@@ -24,6 +24,10 @@ const store = new Vuex.Store({
     },
     thisPageToProfile(state){
       this.state.page = 2
+    },
+    thisPageToSuggestions(state){
+      this.state.page = 3
+
     }
   },
   actions: {
@@ -41,6 +45,9 @@ const store = new Vuex.Store({
     },
     setPageToProfile({commit}){
       commit('thisPageToProfile')
+    },
+    setPageToSuggestions({commit}){
+      commit('thisPageToSuggestions')
     }
   }
 })
@@ -110,9 +117,6 @@ Vue.component('app-header', {
       </div>
     </nav>
     `,
-    created(){
-      this.$forceUpdate()
-    },
     computed: {
       isLoggedIn(){
         return store.state.isLoggedIn
@@ -141,6 +145,13 @@ Vue.component('app-header', {
         profile_pic: localStorage.getItem('profile_pic'),
         toggle: false
       }
+    },
+    mounted: function(){
+      this.$root.$on('refresh', ()=>{
+        this.id = localStorage.getItem('user_id')
+        this.profile_pic = localStorage.getItem('profile_pic')
+        this.$forceUpdate()
+      })
     }
 });
 
@@ -545,7 +556,7 @@ const Logout = Vue.component('logout',{
 const HomePage = Vue.component('homepage',{
   template: `
   <div class="container">
-    <div v-if="page" class="row">
+    <div class="row">
       <div class="col-md-1"></div>
       <div id="dashboard" class="col-md-7">
         <div id="user-header">
@@ -584,36 +595,30 @@ const HomePage = Vue.component('homepage',{
       <div class="col-md-4">
         <div id="rhs">
           <div id="user">
-            <img v-bind:src="user.profile_pic" alt>
+            <img v-bind:src="user.profile_pic">
             <span class="username">{{user.username}}</span>
             <span class="name">{{user.firstname}} {{user.lastname}}</span>
           </div>
           <span id="h6">Suggestions For You</span>
-          <span id="see-all"><router-link @click="" to="/explore">See All</router-link></span>
-          <div id="suggestion-view" v-for="index in 5" :key="index">
-            <img v-bind:src="users[index].profile_pic"> 
-            <span class="username">{{users[index].username}}</span>
-            <button @click="followUser(users[index].id); toggle(users[index])" class="btn btn-primary follow" :class="{'following':toggle_.includes(users[index])}" v-if="!users[index].check_follow"></button>
-            <button class="btn btn-primary following" v-if="users[index].check_follow"></button>
+          <span><router-link id="see-all" @click.native="setPageToSuggestions" to="/suggestions">See All</router-link></span>
+          <div v-if="num>=5">
+            <div id="suggestion-view" v-for="index in 5" :key="index-=1">
+              <img v-bind:src="users[index].profile_pic"> 
+              <span class="username">{{users[index].username}}</span>
+              <button @click="followUser(users[index].id); toggle(users[index])" class="btn btn-primary follow" :class="{'following':toggle_.includes(users[index])}" v-if="!users[index].check_follow"></button>
+              <button class="btn btn-primary following" v-if="users[index].check_follow"></button>
+            </div>
+          </div>
+          <div v-else>
+            <div id="suggestion-view" v-for="index in num" :key="index-=1">
+              <img v-bind:src="users[index].profile_pic"> 
+              <span class="username">{{users[index].username}}</span>
+              <button @click="followUser(users[index].id); toggle(users[index])" class="btn btn-primary follow" :class="{'following':toggle_.includes(users[index])}" v-if="!users[index].check_follow"></button>
+              <button class="btn btn-primary following" v-if="users[index].check_follow"></button>
+            </div>
           </div>
         </div>
       </div>
-    </div>
-    <div v-else class="row">
-      <div class="col-md-2"></div>
-      <div class="col-md-8">
-        <h6>Suggestions For You</h6>
-        <div id="suggestions">
-          <div id="suggestion" v-for="user in users">
-            <img v-bind:src="user.profile_pic" alt> 
-            <span class="username">{{user.username}}</span>
-            <span class="name">{{user.firstname}} {{user.lastname}}</span>
-            <button @click="followUser(user.id); toggle(user)" class="btn btn-primary follow" :class="{'following':toggle_.includes(user)}" v-if="!user.check_follow"></button>
-            <button class="btn btn-primary following" v-if="user.check_follow"></button>
-          </div>
-        </div>
-      </div>
-      <div class="col-md-2"></div>
     </div>
   </div>
   `,
@@ -636,17 +641,10 @@ const HomePage = Vue.component('homepage',{
         localStorage.setItem('lastname', data.user.lastname)
         localStorage.setItem('biography', data.user.biography)
         localStorage.setItem('location', data.user.location)
-        store.dispatch('setLoggedIn')
-        this.$forceUpdate()
+        this.setUser(data)
+        this.setUsers(data)
+        this.$root.$emit('refresh')
       }
-
-      if(!data.follow)
-        this.setPage(0)
-      else
-        this.setPage(1)
-
-      this.setUser(data)
-      this.setUsers(data)
     })
 
     await fetch('/api/users/' + localStorage.getItem('user_id') + '/posts',{
@@ -660,6 +658,7 @@ const HomePage = Vue.component('homepage',{
     })
     .then(data=>{
       this.setPosts(data)
+      this.$forceUpdate();
     })
 
     if(!this.user)
@@ -671,23 +670,21 @@ const HomePage = Vue.component('homepage',{
     return{
       user: [],
       users: [],
-      page: 0,
       toggle_: [],
       see: false,
       posts: [],
       likes: 0,
-      like: 0
+      like: 0,
+      num: 0
     }
   },
   methods:{
     setUser(response){
       this.user = response.user
     },
-    setPage(type){
-      this.page = type
-    },
     setUsers(response){
       this.users = response.users
+      this.num = this.users.length
     },
     setPosts(response){
       this.posts = response.posts
@@ -724,10 +721,78 @@ const HomePage = Vue.component('homepage',{
       .then(response=>{
         return response.json()
       })
+    },
+    setPageToSuggestions(){
+      store.dispatch('setPageToSuggestions')
     }
   }
 })
-    
+  
+const Suggestions = Vue.component('suggestions',{
+  template: `
+    <div v-else class="row">
+      <div class="col-md-2"></div>
+      <div class="col-md-8">
+        <h6>Suggestions For You</h6>
+        <div id="suggestions">
+          <div id="suggestion" v-for="user in users">
+            <img v-bind:src="user.profile_pic"> 
+            <span class="username">{{user.username}}</span>
+            <span class="name">{{user.firstname}} {{user.lastname}}</span>
+            <button @click="followUser(user.id); toggle(user)" class="btn btn-primary follow" :class="{'following':toggle_.includes(user)}" v-if="!user.check_follow"></button>
+            <button class="btn btn-primary following" v-if="user.check_follow"></button>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-2"></div>
+    </div>
+  `,
+  async created(){
+    await fetch('/api/posts',{
+      method: 'GET',
+      headers:{
+        'Authorization': 'Bearer ' +  JSON.parse(localStorage.getItem('access_token'))
+      }
+    })
+    .then(response=>{
+      return response.json();
+    })
+    .then(data=>{
+      this.setUsers(data)
+    })
+  },
+  methods:{
+    setUsers(response){
+      this.users = response.users
+    },
+    followUser(user_id){
+      fetch('/api/users/'+user_id+'/follow',{
+        method: 'POST',
+        headers:{
+          'Authorization': 'Bearer ' +  JSON.parse(localStorage.getItem('access_token')),
+          'X-CSRFToken': token
+        },
+        credentials: 'same-origin'
+      })
+      .then(response=>{
+        return response.json()
+      });
+    },
+    toggle(item){
+      const index = this.toggle_.indexOf(item)
+      if (index >= 0)
+        this.toggle_.splice(index,1)
+      else
+        this.toggle_.push(item)
+    }
+  },
+  data: ()=>{
+    return{
+      users: []
+    }
+  }
+})
+
 const router = new VueRouter({
     mode: 'history',
     routes: [
@@ -735,6 +800,7 @@ const router = new VueRouter({
         {path: "/register", component: Registration},
         {path: "/login", component: Login},
         {path: "/explore", component: HomePage},
+        {path: "/suggestions", component: Suggestions},
         {path: "/posts/new", component: Post},
         {path: "/user/:user_id", component: User},
         {path: "/users/edit", component: Edit},
